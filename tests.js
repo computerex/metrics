@@ -33,3 +33,5 @@ metrics.post('test', 1)
 metric = metrics.get('test')
 assert.equal(metric.min, 1)
 assert.equal(metric.median, 3)
+
+console.log("All tests passed")

@@ -7,6 +7,13 @@ npm install
 node index.js
 ```
 
+to run the tests:
+
+```
+node tests.js
+```
+
+
 Visit http://localhost:8080/docs to visit the API docs.
 
 ### Time and space complexity discussion
