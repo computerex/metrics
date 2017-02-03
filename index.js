@@ -37,6 +37,11 @@ function median(nums) {
 app.post('/api/metric', function(req, res){
   var metricName = req.body.name;
   var metricValue = parseFloat(req.body.value);
+
+  if (!metricName || metricName.trim().length <= 1 || isNaN(metricValue)) {
+    res.sendStatus(400);
+    return;
+  }
   var metric = metrics[metricName];
   if (metric) {
     metric.values.push(metricValue);
