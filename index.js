@@ -1,26 +1,13 @@
 var express = require('express');
 var app = express();
 var bodyparser = require("body-parser");
-var quickselect = require('quickselect');
+var metrics = require('./metrics');
 
 // parse application/x-www-form-urlencoded
 app.use(bodyparser.urlencoded({ extended: false }))
 // parse application/json
 app.use(bodyparser.json())
 app.use(express.static('public_html'));
-
-// instructions said storage doesn't have to be durable
-// good thing nodejs is single threaded, no need to worry about 
-// mutual exclusion
-var metrics = {};
-
-function median(nums) {
-    var k = Math.floor(nums.length/2.0);
-    // Floyd-Rivest 
-    quickselect(nums, k);
-    if (nums.length % 2 == 0) return (nums[k]+nums[k-1])/2.0;
-    return nums[k];
- }
 
 /**
  * @api {POST} /api/metric post a value for a metric
@@ -42,23 +29,8 @@ app.post('/api/metric', function(req, res){
     res.sendStatus(400);
     return;
   }
-  var metric = metrics[metricName];
-  if (metric) {
-    metric.values.push(metricValue);
-    metric.mean = metric.mean + (metricValue - metric.mean)/(metric.values.length);
-    metric.median = median(metric.values);
-    metric.min = Math.min(metric.min, metricValue);
-    metric.max = Math.max(metric.max, metricValue);
-  } else {
-    metrics[metricName] = {
-      mean: metricValue,
-      median: metricValue,
-      min: metricValue, 
-      max: metricValue,
-      values: [metricValue]
-    };
-  }
-  res.sendStatus(200);
+  metrics.post(metricName, metricValue)
+  res.sendStatus(200)
 });
 
 
@@ -88,7 +60,7 @@ app.post('/api/metric', function(req, res){
  *    HTTP/1.1 404 Metric Not Found 
  */
 app.get('/api/metric/:metric', function(req, res){
-  var metric = metrics[req.params.metric];
+  var metric = metrics.get(req.params.metric);
   if (!metric) {
     res.sendStatus(404);
     return;
